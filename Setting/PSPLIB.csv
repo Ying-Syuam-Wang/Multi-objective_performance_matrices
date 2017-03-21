@@ -1,0 +1,10 @@
+0,1,2,3,4,5,6,7,8,
+1,sActivities,iActivities,totalInstance,DueDate,dotActivity,dotDueDay,readActivities,readDueDay2014,readDueDay2015
+2,j30,32,480,89,.rcp,.fac,PSPLIB\\j30rcp\\,NONE,PSPLIB\\DueDate\\fac30\\
+3,j60,62,480,76,.rcp,.fac,PSPLIB\\j60rcp\\,NONE,PSPLIB\\DueDate\\fac60\\
+4,j90,92,480,59,.sm,.fac,PSPLIB\\j90sm\\,NONE,PSPLIB\\DueDate\\fac90\\
+5,j120,122,600,600,.rcp,.fac,PSPLIB\\j120rcp\\,PSPLIB\\2014\\,PSPLIB\\DueDate\\fac120\\
+,,,,,,,,,
+,,,,,,,,,
+,Compare2016,,,,,,,,
+,PSPLIB\\DueDate\\j30_40cases.txt,,,,,,,,

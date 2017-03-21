@@ -1,0 +1,11 @@
+MultiObjectivePerformance.cbp
+MultiObjectivePerformance.layout
+PSPLIB/
+obj/Debug/IndicatorSetting.o
+obj/Debug/main.o
+MultiObjectivePerformance.depend
+*.o
+Setting/J120.txt
+Setting/J30.txt
+Setting/J60.txt
+Setting/J90.txt
