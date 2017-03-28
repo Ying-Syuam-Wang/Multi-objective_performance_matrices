@@ -28,13 +28,21 @@ CProblem::CProblem(const std::string & problemSetting)
     strTmp = strTmp.substr(ipos+1,strTmp.length()-ipos-1);
     ipos = strTmp.find(",");
 
-    std::string type;
     for(std::size_t i = 0; i < _numObj; i += 1)
     {
         if(ipos == std::string::npos)
             repeatWarning(problemSetting);
-        _objType[i] = objType(strTmp.substr(0,ipos));
+        if(strTmp.substr(0,ipos) == "MAX")
+            _objType[i] = new CObjMaximize;
+        else
+            _objType[i] = new CObjMinimize;
         strTmp = strTmp.substr(ipos+1,strTmp.length()-ipos-1);
     }
 
+}
+CProblem::~CProblem()
+{
+    for(std::vector<CObjType*>::iterator it = _objType.begin(); it != _objType.end(); it += 1)
+        delete (*it);
+    _objType.clear();
 }

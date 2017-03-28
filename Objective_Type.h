@@ -6,12 +6,28 @@
 class CObjType
 {
 public:
-    enum eObjType{min = 1,MAX};
-    static const char strMAX[];//MAX
-    static const char strMin[];//min
-    std::string operator()(const eObjType &o)const{return (o == eObjType::min)?strMin:strMAX;}
-    eObjType operator()(const std::string &o)const{return (o == strMin)?eObjType::min:eObjType::MAX;}
+    typedef double Tobj;
+    virtual ~CObjType(){}
+    static const char min[];
+    static const char MAX[];
+
+    bool isEqual(const Tobj & smaller,const Tobj & bigger)const
+        {return (smaller==bigger);}
+    virtual bool isBetter(const Tobj & smaller,const Tobj & bigger)const = 0;
 };
 
-extern CObjType objType;
+class CObjMinimize:public CObjType
+{
+public:
+    virtual bool isBetter(const CObjType::Tobj & smaller,const CObjType::Tobj & bigger)const
+        {return (smaller<bigger);}
+};
+
+class CObjMaximize:public CObjType
+{
+public:
+    virtual bool isBetter(const CObjType::Tobj & bigger,const CObjType::Tobj & smaller)const
+        {return (smaller<bigger);}
+};
+
 #endif // OBJECTIVE_TYPE_H_INCLUDED

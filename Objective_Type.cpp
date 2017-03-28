@@ -1,6 +1,5 @@
 #include "Objective_Type.h"
 
-CObjType objType;
 
-const char CObjType::strMAX[] = "MAX";
-const char CObjType::strMin[] = "min";
+const char CObjType::min[] = "min";
+const char CObjType::MAX[] = "MAX";

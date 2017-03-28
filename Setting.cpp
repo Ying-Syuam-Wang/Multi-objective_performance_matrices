@@ -1,14 +1,14 @@
 #include "Setting.h"
+#include "algo.h"
+#include "Indicator.h"
 #include <fstream>
 #include <sstream>
-
-const std::vector<std::size_t> length = {3,0,3,2};
-
-CSetting::CSetting(const CFileProcess::File_Root &fileName)
+const vector<size_t> length = {8,0,3,2};
+CSetting::CSetting(const CFileProcess::File_Root &fileName) : _isUseThisMatrix(numMatrix)
 {
     std::ifstream file;
     FileProcess.open(fileName,file);
-    std::string strTmp;
+    string strTmp;
     std::stringstream* ss;
     for(std::size_t i = 0; i < length.size(); i += 1)
     {
@@ -19,60 +19,56 @@ CSetting::CSetting(const CFileProcess::File_Root &fileName)
             ss = FileProcess.read_CSV_line(length[i],strTmp);
         else
         {
-            std::size_t pos = strTmp.find(',');
-            std::string HowMany(strTmp.substr(0,pos));
+            size_t pos = strTmp.find(',');
+            string HowMany(strTmp.substr(0,pos));
             std::stringstream ssHowMany;
-            std::size_t numSet;
+            size_t numSet;
             ssHowMany << HowMany;
             ssHowMany >> numSet;
-
+            _setTittle.resize(numSet);
             ss = FileProcess.read_CSV_line(numSet+1,strTmp);
-            this->_instances.resize(numSet);
         }
 
         switch(i)
         {
         case 0:
+        {
             ss[0] >> this->_savePath;
             ss[1] >> this->_numDistribute;
-            ss[2] >> this->_IGDpfCHOOSE;
-            break;
-        case 1:
-            for(std::size_t i = 1; i < _instances.size(); i += 1)
+            for(size_t x = 0; x < _isUseThisMatrix.size(); x += 1)
             {
-                std::string strTmp2;
-                ss[i] >> strTmp2;
-                this->_instances[i].SetName(strTmp2);
-                this->_instances[i].Set("Setting\\"+this->_instances[i].name()+".txt");
+                bool is;
+                ss[x+2] >> is;
+                this->_isUseThisMatrix[x] = is;
             }
-            break;
+        }
+        break;
+        case 1:
+            for(size_t i = 0; i < _setTittle.size(); i += 1)
+                ss[i+1] >> _setTittle[i];
+        break;
         case 2:
             ss[0] >> this->_insBack;
-            ss[1] >> this->_runFront;
-            ss[2] >> this->_runBack;
-            break;
+            ss[1] >> this->_runBegin;
+            ss[2] >> this->_runEnd;
+        break;
         case 3:
-        {
-            std::size_t tmp;
-            ss[0] >> tmp;
-            this->_algos.resize(tmp);
+            ss[0] >> this->_numAlgos;
+            _algoTittleAndPath.resize(this->_numAlgos);
             ss[1] >> this->_FolderTITTLE;
-        }
-            break;
+        break;
         }
         ss->clear();
     }
 
-    for(std::size_t i = 0; i < _algos.size(); i += 1)
+    file >> strTmp;
+
+    for(size_t i = 0; i < this->_numAlgos; i += 1)
     {
         file >> strTmp;
         ss = FileProcess.read_CSV_line(3,strTmp);
-        std::string strTmp2;
-        ss[1] >> strTmp2;
-        _algos[i].SetTittle(strTmp2);
-        strTmp2.clear();
-        ss[2] >> strTmp2;
-        _algos[i].SetAbsPath(strTmp2);
+        ss[1] >> _algoTittleAndPath[i].first;
+        ss[2] >> _algoTittleAndPath[i].second;
         ss->clear();
     }
 }

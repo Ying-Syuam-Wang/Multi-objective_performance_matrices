@@ -3,26 +3,28 @@
 #include <vector>
 #include <string>
 #include "FileProcess.h"
+using std::string;
 
-class CInstanceSet_Setting
+class CInstanceSetNames
 {
 public:
-    CInstanceSet_Setting(){}
-    explicit CInstanceSet_Setting(const CFileProcess::File_Root &fileName)
-        {Set(fileName);}
+    CInstanceSetNames(){}
+    explicit CInstanceSetNames(const std::string &setName,const CFileProcess::File_Root &fileName)
+        {Set(fileName);
+         SetName(setName);}
 
     void Set(const CFileProcess::File_Root &fileName);
+    std::size_t size()const{return _insName.size();}
 
-    void SetName(const std::string & n){_name = n;}
-    const std::string & name()const{return _name;}
+    void SetName(const string &n){_name = n;}
+    const string &name()const{return _name;}
 
-    const std::string & operator[](std::size_t i)const{return _insName[i];}
-    std::string & operator[](std::size_t i)
-        { return const_cast<std::string&>(static_cast<const CInstanceSet_Setting&>(*this)[i]);}
+    const string & operator[](std::size_t i)const{return _insName[i];}
+    string & operator[](std::size_t i)
+        { return const_cast<string&>(static_cast<const CInstanceSetNames&>(*this)[i]);}
 private:
-    std::string _name;
-    std::vector<std::string> _insName;
+    string _name;
+    std::vector<string> _insName;
 };
-
 
 #endif // INSTANCE_H_INCLUDED
