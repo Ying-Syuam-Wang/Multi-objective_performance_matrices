@@ -33,9 +33,16 @@ public:
                const size_t runBegin,
                const size_t runEnd);
 
+    void SetUpSolutions(const string &fileName,
+                        const size_t numObj,
+                        CInstanceResult &insResult);
+
     const InsRunResults & operator[](size_t i)const{return _allInsRunResults[i];}
     InsRunResults & operator[](size_t i)
         { return const_cast<InsRunResults&>(static_cast<const CAlgo&>(*this)[i]);}
+
+    void resizeResult(const size_t i){_allInsRunResults.resize(i);}
+    void resizeResult(const size_t i,const size_t j){_allInsRunResults.resize(i,vector<CInstanceResult>(j));}
 
     void SetTittle(const string &tittle){_tittle = tittle;}
     void SetAbsPath(const string &absPath){_absoluteFolderPath = absPath;}
