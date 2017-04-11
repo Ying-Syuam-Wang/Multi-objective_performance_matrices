@@ -2,57 +2,51 @@
 #include "Indicator.h"
 #include "Setting.h"
 #include "Setting_Problem.h"
-//#include <fstream>
-//#include <sstream>
-//#include <string>
+#include "Dominace_Relationship.h"
 #include <stdlib.h>
 
 using namespace std;
 
 int main()
 {
-//    ifstream input;
-//    input.open("Setting\\j120_40cases.txt");
-//    ofstream output;
-//    output.open("Setting\\J120.txt");
-//    string str;
-//    while(input >> str && !input.fail())
-//    {
-//        str = str.substr(0, str.length() - 7);
-//
-//        output << str << endl;
-//        str.clear();
-//    }
-//    input.close();
-//    output.close();
-
     CSetting Setting("Setting\\IndicatorSetting.csv");
     CProblem Problem("Setting\\Problem.csv");
+    CDominace dominated;
+
     for(size_t s = 0; s < Setting.numSets(); s += 1)
     {
         vector<CAlgo> algos(Setting.numAlgos());
         CInstanceSetNames insSetNames(Setting.setTittle(s),"Setting\\"+Setting.setTittle(s)+".txt");
+
+        CAlgo allInsPF;
+        allInsPF.SetUp("PF","Setting\\PF",
+                       insSetNames,Problem.numObj(),
+                       "NONE",0,0);
+
         for(size_t a = 0; a < Setting.numAlgos(); a += 1)
         {
             algos[a].SetUp(Setting.algoTittleAndPath(s).first,
                            Setting.algoTittleAndPath(s).second,
                            insSetNames,Problem.numObj(),
                            Setting.insBack(),Setting.runBegin(),Setting.runEnd());
-    cout<<"SetUp";
-    system("PAUSE");
+            ///update PF
             for(size_t i = 0; i < insSetNames[s].size(); i += 1)
-            {
-                for(size_t j = 0,numRun = Setting.runEnd()-Setting.runBegin()+1; j < numRun; j += 1)
-                {
-
-                }
-            }
+                for(size_t r = 0,numRun = Setting.runEnd()-Setting.runBegin()+1; r < numRun; r += 1)
+                    dominated.UpdatePF(Problem,algos[a][i][r].front(),allInsPF[i][0].front());
         }
+        //output PF
+        for(size_t i = 0; i < insSetNames[s].size(); i += 1)
+        {
+
+        }
+        ///nomrolized
+        for(size_t a = 0; a < Setting.numAlgos(); a += 1)
+            for(size_t i = 0; i < insSetNames[s].size(); i += 1)
+                for(size_t r = 0,numRun = Setting.runEnd()-Setting.runBegin()+1; r < numRun; r += 1)
+//                    normalize(allInsPF[i][r].front(),algos[a][i][r].front());
+        cout << "SetUp";
+        system("PAUSE");
     }
-
-
     system("PAUSE");
-
-
 }
 

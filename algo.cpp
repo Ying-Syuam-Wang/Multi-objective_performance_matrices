@@ -9,7 +9,7 @@ void CAlgo::SetUp(const string & tittle,
                   const size_t runBegin,
                   const size_t runEnd)
 {
-    this->_tittle = tittle);
+    this->_tittle = tittle;
     this->_absoluteFolderPath = absPath;
 
     size_t numRun = 1;
@@ -19,8 +19,13 @@ void CAlgo::SetUp(const string & tittle,
 
     for(size_t i = 0, numRun = runEnd-runBegin+1; i < insSetNames.size(); i += 1)
         for(size_t r = 0; r < numRun; r += 1)
-            this->SetUpSolutions(absPath+"\\"+insSetNames.name()+"\\"+insSetNames[i]+fileBack+Convert.toString(runBegin+r)+".txt",
-                            numObj,_allInsRunResults[i][0]);
+            if(!(runBegin ==0 && runEnd == 0 && fileBack == "NONE"))
+                this->SetUpSolutions(absPath+"\\"+insSetNames.name()+"\\"+insSetNames[i]+fileBack+Convert.toString(runBegin+r)+".txt",
+                                     numObj,_allInsRunResults[i][0]);
+            else
+                this->SetUpSolutions(absPath+"\\"+insSetNames.name()+"\\"+insSetNames[i]+".txt",
+                                     numObj,_allInsRunResults[i][0]);
+
 //    this->SetUpSolutions(absPath+"\\"+insSetNames.name()+"\\"+insSetNames[i]+".txt",
 //                    numObj,_allInsRunResults[i][0]);
 //            FileProcess.open(absPath+"\\"+insSetNames.name()+"\\"+insSetNames[i]+".txt",ins);

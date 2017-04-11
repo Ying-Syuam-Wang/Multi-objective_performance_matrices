@@ -3,10 +3,12 @@
 
 #include "algo_Performace.h"
 #include "Solution.h"
+#include "Front.h"
 #include <fstream>
 #include <vector>
 #include <string>
 using std::string;
+
 
 class CInstanceResult
 {
@@ -21,9 +23,6 @@ class CInstanceResult
         return os;
     }
 public:
-    typedef std::vector<CSolution> Front;
-
-
     CAlgoPerformace insPerformace;
 
     CInstanceResult(){}
@@ -35,16 +34,16 @@ public:
 
     std::size_t size(){return _results.size();}
 
-    Front & front(){return _results;}
+    CFront & front(){return _results;}
 
     void SetNumObjs(size_t o){_results.resize(o);}
-    void SetSolutions(const std::vector<CSolution> &F){_results = F;}
+    void SetSolutions(const std::vector<CSolution> &F){_results.Front() = F;}
     void SetSolutions(const std::vector<std::vector<double>> &F);
     void SetSolution(const size_t i,const CSolution &P){_results[i] = P;}
     void AddSolution(const CSolution &P){_results.push_back(P);}
 
 private:
-    Front _results;
+    CFront _results;
 
 };
 
