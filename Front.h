@@ -2,6 +2,12 @@
 #define FRONT_H_INCLUDED
 
 #include "Solution.h"
+
+/**
+sorting-using-member-function-as-comparator
+from
+http://stackoverflow.com/questions/1902311/problem-sorting-using-member-function-as-comparator
+**/
 class CFront
 {
 public:
@@ -21,7 +27,14 @@ public:
 
 private:
     std::vector<CSolution> _Front;
-    bool CompareAsThis(const CSolution& i, const CSolution& j){}
+
+    struct doCompare {
+        doCompare(const CFront & f,const std::size_t o): front(f),obj(o){}
+        bool operator()(const CSolution & i, const CSolution & j) {return (i[obj]<j[obj]);}
+        const CFront& front;
+        const std::size_t obj;
+    };
 };
+
 
 #endif // FRONT_H_INCLUDED
