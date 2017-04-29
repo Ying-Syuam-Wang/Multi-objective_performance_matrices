@@ -16,8 +16,9 @@ public:
     void ReadPoints(const std::size_t numObj,
                     std::ifstream & file,
                     std::vector<std::vector<double>> & points);
+    void OutPoints(const std::vector<std::vector<double>> & points,
+                   std::ofstream & file);
 };
 
-extern CFileProcess FileProcess;
 
 #endif // FILEPROCESS_H_INCLUDED

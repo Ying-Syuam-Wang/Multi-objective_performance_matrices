@@ -1,10 +1,17 @@
 #ifndef SOLUTION_H_INCLUDED
 #define SOLUTION_H_INCLUDED
 #include <vector>
+#include <iostream>
 #include "Objective_Type.h"
 
 class CSolution
 {
+    friend std::ostream & operator << (std::ostream & os,const CSolution &sol)
+    {
+        for(CObjType::Tobj o: sol._objs)
+            os << o << " ";
+        return os;
+    }
 public:
     typedef std::vector<CObjType::Tobj> Tobjs;
 

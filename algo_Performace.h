@@ -1,30 +1,46 @@
 #ifndef ALGO_PERFORMACE_H_INCLUDED
 #define ALGO_PERFORMACE_H_INCLUDED
-
+#include "Indicator.h"
+#include "Objective_Type.h"
 #include <iostream>
 #include <vector>
 #include <string>
 using std::string;
 
-class CAlgoPerformace
+class CPerformace
 {
-    friend std::ostream & operator << (std::ostream & os,const CAlgoPerformace &insPer)
+    friend std::ostream & operator << (std::ostream & os,const CPerformace &insPer)
     {
-        for(std::size_t i = 0; i < insPer.performace.size(); i += 1)
-            os << insPer.performace[i] << " ";
+            os << "GD ,"    << insPer._GD       << ", "
+               << "IGD ,"   << insPer._IGD      << ", "
+               << "IGD+ ,"  << insPer._IGD_Puls << ", "
+               << "HV ,"  << insPer._HV       << ", "
+               << "Size ," << insPer._Size     << std::endl;
         return os;
     }
 public:
-    CAlgoPerformace(){}
-    explicit CAlgoPerformace(size_t s){SetNumMatrix(s);}
-    void SetNumMatrix(size_t s){performace.resize(s,-1);}
+    CPerformace(){}
+    void set(const std::vector<CObjType::Tobj> & per);
+    void set(matrix i, CObjType::Tobj per);
+    void setGD(CObjType::Tobj gd){_GD = gd;}
+    void setIGD(CObjType::Tobj igd){_IGD = igd;}
+    void setIGD_Puls(CObjType::Tobj igd_plus){_IGD_Puls = igd_plus;}
+    void setHV(CObjType::Tobj hv){_HV = hv;}
+    void setSize(CObjType::Tobj s){_Size = s;}
 
-    const double & operator[](std::size_t i)const{return performace[i];}
-    double & operator[](std::size_t i)
-        { return const_cast<double&>(static_cast<const CAlgoPerformace&>(*this)[i]);}
+    CObjType::Tobj get(const matrix i)const;
+
+    CObjType::Tobj GD(){return _GD;}
+    CObjType::Tobj IGD(){return _IGD;}
+    CObjType::Tobj IGD_Puls(){return _IGD_Puls;}
+    CObjType::Tobj HV(){return _HV;}
+    CObjType::Tobj Size(){return _Size;}
+
 private:
-    std::vector<double> performace;
+    CObjType::Tobj _GD;
+    CObjType::Tobj _IGD;
+    CObjType::Tobj _IGD_Puls;
+    CObjType::Tobj _HV;
+    CObjType::Tobj _Size;
 };
-
-
 #endif // ALGO_PERFORMACE_H_INCLUDED

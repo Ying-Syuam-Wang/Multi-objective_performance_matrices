@@ -6,8 +6,6 @@
 using std::string;
 using std::vector;
 
-CFileProcess FileProcess;
-
 std::stringstream* CFileProcess::read_CSV_line(const std::size_t length,string & line)
 {
     std::stringstream *ss = new std::stringstream[length];
@@ -50,6 +48,16 @@ void CFileProcess::ReadPoints(const std::size_t numObj,std::ifstream & file,vect
         for(std::size_t i = 1; i < numObj; i += 1)
             file >> point[i];
         points.push_back(point);
+    }
+    file.close();
+}
+void CFileProcess::OutPoints(const std::vector<std::vector<double>> & points,std::ofstream & file)
+{
+    for(std::vector<double> point: points)
+    {
+        for(double o: point)
+            file << o << " ";
+        file << std::endl;
     }
     file.close();
 }

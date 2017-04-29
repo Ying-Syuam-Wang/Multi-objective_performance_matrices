@@ -8,8 +8,6 @@ class CObjType
 public:
     typedef double Tobj;
     virtual ~CObjType(){}
-    static const char min[];
-    static const char MAX[];
 
     bool isEqual(const Tobj & smaller,const Tobj & bigger)const
         {return (smaller==bigger);}

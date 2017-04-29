@@ -2,7 +2,7 @@
 #define INSTANCE_H_INCLUDED
 #include <vector>
 #include <string>
-#include "FileProcess.h"
+#include "FileProcess_result.h"
 using std::string;
 
 class CInstanceSetNames
@@ -10,10 +10,10 @@ class CInstanceSetNames
 public:
     CInstanceSetNames(){}
     explicit CInstanceSetNames(const std::string &setName,const CFileProcess::File_Root &fileName)
-        {Set(fileName);
+        {SetUpNames(fileName);
          SetName(setName);}
 
-    void Set(const CFileProcess::File_Root &fileName);
+    void SetUpNames(const CFileProcess::File_Root &fileName);
     std::size_t size()const{return _insName.size();}
 
     void SetName(const string &n){_name = n;}

@@ -1,48 +1,67 @@
 #include "algo.h"
-#include "FileProcess.h"
+#include "FileProcess_result.h"
 #include "Convert.h"
-void CAlgo::SetUp(const string & tittle,
-                  const string & absPath,
-                  const CInstanceSetNames &insSetNames,
+#include "Setting.h"
+void CAlgo::SetUp(const string &tittle,
+                  const string &absPath,
+                  const vector<CInstanceSetNames> & insSetNames,
                   const size_t numObj,
-                  const string & fileBack,
+                  const size_t numSet,
+                  const string insBack,
                   const size_t runBegin,
                   const size_t runEnd)
 {
     this->_tittle = tittle;
     this->_absoluteFolderPath = absPath;
+    this->_insSets.resize(numSet);
 
     size_t numRun = 1;
-    if(!(runBegin ==0 && runEnd == 0 && fileBack == "NONE"))
+    bool isWithBack = true;
+    if(!(runBegin ==0 && runEnd == 0 && insBack == "NONE"))
         numRun = runEnd-runBegin+1;
-    _allInsRunResults.resize(insSetNames.size(),vector<CInstanceResult>(numRun));
+    else
+        isWithBack = false;
 
-    for(size_t i = 0, numRun = runEnd-runBegin+1; i < insSetNames.size(); i += 1)
-        for(size_t r = 0; r < numRun; r += 1)
-            if(!(runBegin ==0 && runEnd == 0 && fileBack == "NONE"))
-                this->SetUpSolutions(absPath+"\\"+insSetNames.name()+"\\"+insSetNames[i]+fileBack+Convert.toString(runBegin+r)+".txt",
-                                     numObj,_allInsRunResults[i][0]);
-            else
-                this->SetUpSolutions(absPath+"\\"+insSetNames.name()+"\\"+insSetNames[i]+".txt",
-                                     numObj,_allInsRunResults[i][0]);
-
-//    this->SetUpSolutions(absPath+"\\"+insSetNames.name()+"\\"+insSetNames[i]+".txt",
-//                    numObj,_allInsRunResults[i][0]);
-//            FileProcess.open(absPath+"\\"+insSetNames.name()+"\\"+insSetNames[i]+".txt",ins);
-//            FileProcess.ReadPoints(numObj,ins,tmpPoints);
-//            _allInsRunResults[i][0].SetSolutions(tmpPoints);
-//            tmpPoints.clear();
-//            ins.close();
+    for(size_t s = 0; s < numSet; s += 1)
+    {
+        _insSets[s].resizeIns(insSetNames[s].size());
+        for(size_t i = 0; i < insSetNames[s].size(); i += 1)
+        {
+            _insSets[s][i].resizeRuns(numRun);
+            for(size_t r = 0; r < numRun; r += 1)
+            {
+                if(isWithBack)
+                    this->SetUpSolutions(absPath+"\\\\"+insSetNames[s].name()+"\\\\"+insSetNames[s][i]+insBack+Convert.toString(runBegin+r)+".txt",
+                                         numObj,_insSets[s][i][r]);
+                else
+                    this->SetUpSolutions(absPath+"\\\\"+insSetNames[s].name()+"\\\\"+insSetNames[s][i]+".txt",
+                                         numObj,_insSets[s][i][0]);
+            }
+        }
+    }
 }
 void CAlgo::SetUpSolutions(const string &fileName,
                            const size_t numObj,
-                           CInstanceResult &insResult)
+                           CSingleInstanceResult &insResult)
 {
     std::ifstream ins;
-    std::vector<std::vector<double>> tmpPoints;
-
-    FileProcess.open(fileName,ins);
-    FileProcess.ReadPoints(numObj,ins,tmpPoints);
-    insResult.SetSolutions(tmpPoints);
+    ResultFileProcess.open(fileName,ins);
+    ResultFileProcess.ReadFront(numObj,ins,insResult.front());
+    insResult.front().sortByObj();
     ins.close();
+}
+
+void CAlgo::calAvgPerforamce()
+{
+    for(int m = matrix::GD; m != matrix::C_Metrix; m += 1)
+    {
+        double sum = 0.;
+        for(size_t s = 0; s < _insSets.size(); s += 1)
+        {
+            _insSets[s].calAvgPerforamce();
+            sum += _insSets[s].avgPerformance().get((matrix)m);
+        }
+        double average = sum / _insSets.size();
+        _avgSetPerformance.set((matrix)m,average);
+    }
 }
