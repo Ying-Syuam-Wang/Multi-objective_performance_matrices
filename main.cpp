@@ -5,6 +5,7 @@
 #include "Dominace_Relationship.h"
 #include "Convert.h"
 #include "gnuplot_interface.h"
+#include "FileProcess_result.h"
 
 #include <iostream>
 #include <stdlib.h>
@@ -13,75 +14,113 @@
 #include <sstream>
 using namespace std;
 
-const std::pair<double,double> HV_ReferencePoint(1.2,1.2);
+//enum matrix{GD = 0,IGD,IGD_Puls,HV,Size,C_Metrix};
+const int matrixFront = matrix::GD;
+const int matrixEnd = matrix::HV;
 
+const std::pair<double,double> HV_ReferencePoint(1.2,1.2);
 int main()
 {
     CSetting Setting("Setting\\IndicatorSetting.csv");
-    string answer = "n";
-    while(mkdir(Setting.FolderTITTLE().c_str()) != 0 && answer != "y")
-    {
-        cout << "the folder "<< Setting.FolderTITTLE() <<" is already exist, want to reset? (y/n)...>";
-        cin >> answer;
-        if(answer != "y")
-        {
-            cout << "Or you want to change tittle?(y/n)...>";
-            cin >> answer;
-            if(answer == "y")
-            {
-                cout << "folder name...>";
-                string NewFolderName;
-                cin >> NewFolderName;
-                Setting.setFolderTITTLE(NewFolderName);
-            }
-        }
-    }
+    string answer("n");
+//    while(mkdir(Setting.FolderTITTLE().c_str()) != 0 && answer != "y")
+//    {
+//        cout << "the folder "<< Setting.FolderTITTLE() <<" is already exist, want to reset? (y/n)...>";
+//        cin >> answer;
+//        if(answer != "y")
+//        {
+//            cout << "Or you want to change tittle?(y/n)...>";
+//            cin >> answer;
+//            if(answer == "y")
+//            {
+//                cout << "folder name...>";
+//                string NewFolderName;
+//                cin >> NewFolderName;
+//                Setting.setFolderTITTLE(NewFolderName);
+//            }
+//        }
+//    }
 
-    vector<CAlgo> algos(Setting.numAlgos());
+    vector<CAlgo> norAlgos(Setting.numAlgos());
     vector<CInstanceSetNames> setIinsSetNames(Setting.numSets());
     for(size_t s = 0; s < Setting.numSets(); s += 1)
     {
         setIinsSetNames[s].SetName(Setting.setTittle(s));
         setIinsSetNames[s].SetUpNames("Setting\\"+Setting.setTittle(s)+".txt");
     }
-    CAlgo allInsPF;
+    CAlgo setPF;
     CProblem Problem("Setting\\Problem.csv");
-    allInsPF.SetUp("PF","Setting\\\\PF",setIinsSetNames,Problem.numObj(),
-                   Setting.numSets(),"NONE",0,0);
-    allInsPF.SetAbsPath(Setting.FolderTITTLE()+"\\\\PF");
-    mkdir(allInsPF.absPath().c_str());
+    setPF.SetUp("PF","Setting\\\\PF",setIinsSetNames,Problem,
+                Setting.numSets(),"NONE",0,0);
+    setPF.SetAbsPath(Setting.FolderTITTLE()+"\\\\PF");
+    mkdir(setPF.absPath().c_str());
 
     CDominace dominated;
     cout << "Finding PF................................................" <<endl;
     const size_t numRun = Setting.runEnd()-Setting.runBegin()+1;
     for(size_t a = 0; a < Setting.numAlgos(); a += 1)
     {
-        algos[a].SetUp(Setting.algoTittleAndPath(a).first,
-                       Setting.algoTittleAndPath(a).second,
-                       setIinsSetNames,Problem.numObj(),Setting.numSets(),
-                       Setting.insBack(),Setting.runBegin(),Setting.runEnd());
+        norAlgos[a].SetUp(Setting.algoTittleAndPath(a).first,
+                          Setting.algoTittleAndPath(a).second,
+                          setIinsSetNames,Problem,Setting.numSets(),
+                          Setting.insBack(),Setting.runBegin(),Setting.runEnd());
         for(size_t s = 0; s < Setting.numSets(); s += 1)
             for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
                 for(size_t r = 0; r < numRun; r += 1)
-                    dominated.UpdatePF(Problem,algos[a].atSet(s).Ins(i).Run(r).front(),allInsPF.atSet(s)[i][r].front());
+                    dominated.UpdatePF(Problem,norAlgos[a].atSet(s).Ins(i).Run(r).front(),setPF.atSet(s)[i].front());
     }
+
 ///find PF----------------------------------------------------------------------------------------
-    cout << "Output PF at " << allInsPF.absPath() << "................................................" <<endl;
-    for(size_t a = 0; a < Setting.numAlgos(); a += 1)
-        for(size_t s = 0; s < Setting.numSets(); s += 1)
-            for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
+    cout << "Output PF at " << setPF.absPath() << "................................................" <<endl;
+
+    ofstream outInsPF;
+    for(size_t s = 0; s < Setting.numSets(); s += 1)
+    {
+        const string strPF(setPF.absPath()+"\\\\"+Setting.setTittle(s));
+        mkdir(strPF.c_str());
+        for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
+        {
+            ResultFileProcess.open(strPF+"\\"+setIinsSetNames[s][i]+".txt",outInsPF);
+            setPF.atSet(s)[i].front().sortByObj();
+            ResultFileProcess.OutFront(setPF.atSet(s)[i].front(),outInsPF);
+        }
+    }
+    cout << "Output PF_Size.csv at " << setPF.absPath() << "................................................" <<endl;
+    ofstream outInsPF_Size;
+    for(size_t s = 0; s < Setting.numSets(); s += 1)
+    {
+        ResultFileProcess.open(setPF.absPath()+"\\\\"+Setting.setTittle(s)+"_PF_Size.csv",outInsPF_Size);
+        outInsPF_Size << Setting.setTittle(s) << ",size" << endl;
+        for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
+        {
+            outInsPF_Size << setIinsSetNames[s][i] << ","
+                          << setPF.atSet(s)[i].front().numSols() << endl;
+        }
+        outInsPF_Size.close();
+    }
+///output PF-----------------------------------------------------------------------------------------------
+
+    cout << "check PF size................................................" <<endl;
+    bool isOnlyOneSolInPF = false;
+    for(size_t s = 0; s < Setting.numSets(); s += 1)
+        for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
+            if(setPF.atSet(s)[i].front().numSols() == 1)
             {
-                const string strPF = allInsPF.absPath()+"\\\\"+Setting.setTittle(s);
-                mkdir(strPF.c_str());
-                ofstream outInsPF;
-                for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
-                {
-                    ResultFileProcess.open(strPF+"\\"+setIinsSetNames[s][i]+".txt",outInsPF);
-                    allInsPF.atSet(s)[i][0].front().sortByObj();
-                    ResultFileProcess.OutFront(allInsPF.atSet(s)[i][0].front(),outInsPF);
-                }
+                isOnlyOneSolInPF = true;
+                cout << setIinsSetNames[s][i] << " only has one solution in PF." << endl;
             }
-//output PF-----------------------------------------------------------------------------------------------
+    while(isOnlyOneSolInPF)
+    {
+        cout << "Please remove above instances from setting, then restart." << endl;
+        system("PAUSE");
+    }
+
+///check PF size-----------------------------------------------------------------------------------------------
+    //for output Extreme----------------------------------------
+    const vector<CAlgo> norFreeAlgos(norAlgos);
+    const CAlgo norFreeSetPF(setPF);
+    //for output Extreme-----------------------------------------
+
     CIndicator indicator;
     cout << "calculate performance................................................" <<endl;
     for(size_t s = 0; s < Setting.numSets(); s += 1)
@@ -90,117 +129,148 @@ int main()
             ///nomrolized
             for(size_t a = 0; a < Setting.numAlgos(); a += 1)
                 for(size_t r = 0; r < numRun; r += 1)
-                    algos[a].atSet(s)[i][r].front().nomalizeBy(allInsPF.atSet(s)[i][0].front().objsExterms());
-            allInsPF.atSet(s)[i][0].front().nomalizeBy(allInsPF.atSet(s)[i][0].front().objsExterms());
+                    norAlgos[a].atSet(s)[i][r].front().nomalizeBy(setPF.atSet(s)[i].front().objsExtremes());
 
-            allInsPF.atSet(s)[i][0].Performace().setHV(indicator.HV(allInsPF.atSet(s)[i][0].front(),HV_ReferencePoint));
-            allInsPF.atSet(s)[i][0].Performace().setSize(indicator.FrontSize(allInsPF.atSet(s)[i][0].front()));
+            setPF.atSet(s)[i].front().nomalizeBy(setPF.atSet(s)[i].front().objsExtremes());
+            setPF.atSet(s)[i].Performace().setHV(indicator.HV(setPF.atSet(s)[i].front(),HV_ReferencePoint));
+            setPF.atSet(s)[i].Performace().setSize(indicator.FrontSize(setPF.atSet(s)[i].front()));
             ///calculate performance
             //algos
             for(size_t a = 0; a < Setting.numAlgos(); a += 1)
                 for(size_t r = 0; r < numRun; r += 1)
                 {
-                    algos[a].atSet(s)[i][r].Performace().setSize(indicator.FrontSize(algos[a].atSet(s)[i][r].front()));
-                    algos[a].atSet(s)[i][r].Performace().setGD(indicator.GD(algos[a].atSet(s)[i][r].front(),
-                            allInsPF.atSet(s)[i][0].front()));
-                    algos[a].atSet(s)[i][r].Performace().setIGD(indicator.IGD(algos[a].atSet(s)[i][r].front(),
-                            allInsPF.atSet(s)[i][0].front()));
-                    algos[a].atSet(s)[i][r].Performace().setIGD_Puls(indicator.IGD_Puls(algos[a].atSet(s)[i][r].front(),
-                            allInsPF.atSet(s)[i][0].front()));
-                    algos[a].atSet(s)[i][r].Performace().setHV(indicator.HV(algos[a].atSet(s)[i][r].front(),HV_ReferencePoint));
-
+                    norAlgos[a].atSet(s)[i][r].Performace().setSize(indicator.FrontSize(norAlgos[a].atSet(s)[i][r].front()));
+                    norAlgos[a].atSet(s)[i][r].Performace().setGD(indicator.GD(norAlgos[a].atSet(s)[i][r].front(),
+                            setPF.atSet(s)[i].front()));
+                    norAlgos[a].atSet(s)[i][r].Performace().setIGD(indicator.IGD(norAlgos[a].atSet(s)[i][r].front(),
+                            setPF.atSet(s)[i].front()));
+                    norAlgos[a].atSet(s)[i][r].Performace().setIGD_Puls(indicator.IGD_Puls(norAlgos[a].atSet(s)[i][r].front(),
+                            setPF.atSet(s)[i].front()));
+                    norAlgos[a].atSet(s)[i][r].Performace().setHV(indicator.HV(norAlgos[a].atSet(s)[i][r].front(),HV_ReferencePoint));
                 }
-            ///calculate performance---------------------------------------------------------------------------------------------
         }
-    cout << "find the minimum performance of all algorithm................................................" <<endl;
-    CAlgo minPerformance(Setting.numSets());
-    minPerformance.SetTittle("minimumAlgo");
-    const string strMiniFPath = Setting.FolderTITTLE()+"\\\\"+minPerformance.tittle();
-    mkdir(strMiniFPath.c_str());
-
-    bool isWithBack = true;
-    if(Setting.runBegin() ==0 && Setting.runEnd() == 0 && Setting.insBack() == "NONE")
-        isWithBack = false;
+///calculate performance---------------------------------------------------------------------------------------------
+    cout << "find the minimum/maximum  performance of all algorithm................" <<endl;
+    //read form Setting\\\\ExtremePerformance
+    string strExtremePerformancePath("Setting\\\\extremePerformance");
+    bool isExtremePerformancePathExist = true;
+    if(ResultFileProcess.isDirectExist(strExtremePerformancePath))
+        cout << "reading minimum/maximum performance from " << strExtremePerformancePath <<"........" <<endl;
+    else
+    {
+        cout << "There is no minimum/maximum performance in " << strExtremePerformancePath <<"...." <<endl;
+        isExtremePerformancePathExist = false;
+    }
+    CAlgo extremeResult(Setting.numSets());
+    extremeResult.SetTittle("extremePF");
+    const string strExtremeFPath(Setting.FolderTITTLE()+"\\\\"+extremeResult.tittle());
+    mkdir(strExtremeFPath.c_str());
     for(size_t s = 0; s < Setting.numSets(); s += 1)
     {
-        const string strSetMiniFPath = strMiniFPath + "\\\\" + setIinsSetNames[s].name();
-        mkdir(strSetMiniFPath.c_str());
-
-        minPerformance.atSet(s).resizeIns(setIinsSetNames[s].size());
+        string strExtremePerformanceSetPath(strExtremePerformancePath+"\\\\"+setIinsSetNames[s].name());
+        if(isExtremePerformancePathExist && !ResultFileProcess.isDirectExist(strExtremePerformanceSetPath))
+        {
+            cout << "There is no minimum/maximum performance in " << strExtremePerformanceSetPath <<"....." <<endl;
+            isExtremePerformancePathExist = false;
+        }
+        extremeResult.atSet(s).resizeIns(setIinsSetNames[s].size());
         for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
         {
-            minPerformance.atSet(s).Ins(i).resizeRuns(indicator.numMatrix-1);
-            for(int m = matrix::GD; m != matrix::C_Metrix; m += 1)
-                minPerformance.atSet(s)[i][m].Performace() = algos[0].atSet(s)[0][0].Performace();
-
-            for(int m = matrix::GD; m != matrix::HV; m += 1)
+            extremeResult.atSet(s).Ins(i).resizeRuns(indicator.numMatrix-1);
+            for(int m = matrixFront; m != matrixEnd; m += 1)
             {
-                int minAlgo = 0, minRun = 0;
+
+                const string strReadExtremeFile(strExtremePerformancePath + "\\\\"
+                                                + indicator.strMatrix[m] + "\\\\"
+                                                + setIinsSetNames[s][i] + ".txt");
+                if(isExtremePerformancePathExist
+                        && ResultFileProcess.isFileExist(strReadExtremeFile))
+                {
+                    //read Extreme
+                    extremeResult.atSet(s)[i][m].SetUpSolutions(strReadExtremeFile,Problem.numObj());
+                    const CFront tmpFront(extremeResult.atSet(s)[i][m].front());
+                    extremeResult.atSet(s)[i][m].front().nomalizeBy(norFreeSetPF.atSet(s)[i].front().objsExtremes());
+///maybe users file would be smaller than PF
+                    extremeResult.atSet(s)[i][m].Performace().setSize(indicator.FrontSize(extremeResult.atSet(s)[i][m].front()));
+                    extremeResult.atSet(s)[i][m].Performace().setGD(indicator.GD(extremeResult.atSet(s)[i][m].front(),
+                            setPF.atSet(s)[i].front()));
+                    extremeResult.atSet(s)[i][m].Performace().setIGD(indicator.IGD(extremeResult.atSet(s)[i][m].front(),
+                            setPF.atSet(s)[i].front()));
+                    extremeResult.atSet(s)[i][m].Performace().setIGD_Puls(indicator.IGD_Puls(extremeResult.atSet(s)[i][m].front(),
+                            setPF.atSet(s)[i].front()));
+
+                    extremeResult.atSet(s)[i][m].front() = tmpFront;
+                }
+                else
+                {
+                    extremeResult.atSet(s)[i][m].Performace() = norAlgos[1].atSet(s)[i][0].Performace();
+                    extremeResult.atSet(s)[i][m].front() = norFreeAlgos[1].atSet(s)[i][0].front();
+                }
                 for(size_t a = 0; a < Setting.numAlgos(); a += 1)
                     for(size_t r = 0; r < numRun; r += 1)
-                        if(minPerformance.atSet(s)[i][m].Performace().get((matrix)m) > algos[a].atSet(s)[i][r].Performace().get((matrix)m))
+                        if(norAlgos[a].atSet(s)[i][r].Performace().isBetter((matrix)m, extremeResult.atSet(s)[i][m].Performace()))
                         {
-                            minPerformance.atSet(s)[i][m].Performace() = algos[0].atSet(s)[0][0].Performace();
-                            minAlgo = a;
-                            minRun = r;
+                            extremeResult.atSet(s)[i][m].Performace() = norAlgos[a].atSet(s)[i][r].Performace();
+                            extremeResult.atSet(s)[i][m].front() = norFreeAlgos[a].atSet(s)[i][r].front();
                         }
-                minPerformance.atSet(s)[i][m].front() = algos[minAlgo].atSet(s)[i][minRun].front();
-
-                ///output minimum
-                const string strSetMiniFMatrixPath = strSetMiniFPath + "\\\\" + indicator.strMatrix[m];
-                mkdir(strSetMiniFMatrixPath.c_str());
-                const string strNewFileName = strSetMiniFMatrixPath+"\\\\"+setIinsSetNames[s][i]+".txt";
-                string backRun = "";
-                if(isWithBack)
-                    backRun = Setting.insBack()+Convert.toString(minRun);
-                string strOldFileName = algos[minAlgo].absPath()+"\\\\"
-                                        + setIinsSetNames[s].name()+"\\\\"
-                                        + setIinsSetNames[s][i]+backRun+".txt";
-                if(!CopyFile(strOldFileName.c_str(), strNewFileName.c_str(), FALSE))
-                {
-                    cout << "We can not crate " << strNewFileName <<endl;
-                    system("PAUSE");
-                }
-                ///output minimum--------------------------------------------------------------------------------
             }
         }
     }
-///find the minimum performance of all algorithm-------------------------------------------------------------
-    cout << "normalized by the minimum performance of all algorithm, then average all performances..............................................." <<endl;
+///find the extreme performance of all algorithm-------------------------------------------------------------
+    cout << "output extreme Performance front..............................................." <<endl;
+    ofstream oExtremeFile;
+    for(size_t s = 0; s < Setting.numSets(); s += 1)
+    {
+        const string strSetOutExtremeFPath(strExtremeFPath + "\\\\" + setIinsSetNames[s].name());
+        mkdir(strSetOutExtremeFPath.c_str());
+        for(int m = matrixFront; m != matrixEnd; m += 1)
+        {
+            const string strSetOutExtremeFMatrixPath(strSetOutExtremeFPath + "\\\\" + indicator.strMatrix[m]);
+            mkdir(strSetOutExtremeFMatrixPath.c_str());
+            for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
+            {
+                const string strExtremeFile(strSetOutExtremeFMatrixPath+"\\\\"+setIinsSetNames[s][i]+".txt");
+                ResultFileProcess.open(strExtremeFile,oExtremeFile);
+                ResultFileProcess.OutFront(extremeResult.atSet(s)[i][m].front(),oExtremeFile);
+            }
+        }
+    }
+///output extreme performance--------------------------------------------------------------------------------
+    cout << "normalized by the extreme performance of all algorithm, " << endl
+         << "then average all performances.........." << endl;
     for(size_t s = 0; s < Setting.numSets(); s += 1)
     {
         for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
         {
-            CPerformace extermPerformance;
-            for(int m = matrix::GD; m != matrix::HV; m += 1)
+            CPerformace ExtremePerformance;
+            for(int m = matrixFront; m != matrixEnd; m += 1)
             {
-                const double minimum = minPerformance.atSet(s)[i][m].Performace().get((matrix)m);
-                extermPerformance.set((matrix)m,minimum);
+                const double extreme = extremeResult.atSet(s)[i][m].Performace().get((matrix)m);
+                ExtremePerformance.set((matrix)m,extreme);
             }
-            const double maximumHV = allInsPF.atSet(s)[i][0].Performace().get(matrix::HV);
-            extermPerformance.set(matrix::HV,maximumHV);
+            const double maximumHV = setPF.atSet(s)[i].Performace().get(matrix::HV);
+            ExtremePerformance.set(matrix::HV,maximumHV);
             for(size_t a = 0; a < Setting.numAlgos(); a += 1)
-                algos[a].atSet(s)[i].norAllRunPerforamceBy(extermPerformance);
+                norAlgos[a].atSet(s)[i].norAllRunPerforamceBy(ExtremePerformance);
         }
         for(size_t a = 0; a < Setting.numAlgos(); a += 1)
-            algos[a].atSet(s).calAvgPerforamce();
+            norAlgos[a].atSet(s).calAvgPerforamce();
     }
-///normalized by the minimum performance of all algorithm, then average all performances----------------------------------------------------------------------------------------------
+///normalized by the extreme performance of all algorithm, then average all performances----------------------------------------------------------------------------------------------
     cout << "output result..............................................." <<endl;
-    const string strPerformacePath = Setting.FolderTITTLE()+"\\\\result";
+    const string strPerformacePath(Setting.FolderTITTLE()+"\\\\result");
     mkdir(strPerformacePath.c_str());
-    CFileProcess FileProcess;
     ofstream PerfanmaceFile;
 
     for(size_t s = 0; s < Setting.numSets(); s += 1)
     {
-        const string strFilename = strPerformacePath + "\\\\" + setIinsSetNames[s].name() + ".csv";
-        FileProcess.open(strFilename,PerfanmaceFile);
+        const string strFilename(strPerformacePath + "\\\\" + setIinsSetNames[s].name() + ".csv");
+        ResultFileProcess.open(strFilename,PerfanmaceFile);
         for(int m = matrix::GD; m != matrix::C_Metrix; m += 1)
         {
             PerfanmaceFile << CIndicator::strMatrix.at(m) << ",";
             for(size_t a = 0; a < Setting.numAlgos(); a += 1)
-                PerfanmaceFile << algos[a].tittle() << ",";
+                PerfanmaceFile << norAlgos[a].tittle() << ",";
             PerfanmaceFile << ",";
         }
         PerfanmaceFile << endl;
@@ -211,7 +281,7 @@ int main()
             {
                 PerfanmaceFile << setIinsSetNames[s][i]  << ",";
                 for(size_t a = 0; a < Setting.numAlgos(); a += 1)
-                    PerfanmaceFile << algos[a].atSet(s).Ins(i).avgPerformance().get((matrix)m) << ",";
+                    PerfanmaceFile << norAlgos[a].atSet(s).Ins(i).avgPerformance().get((matrix)m) << ",";
                 PerfanmaceFile << ",";
             }
             PerfanmaceFile << endl;
@@ -219,19 +289,19 @@ int main()
         PerfanmaceFile.close();
     }
 
-    FileProcess.open(strPerformacePath + "\\\\allPerformance.csv",PerfanmaceFile);
+    ResultFileProcess.open(strPerformacePath + "\\\\allPerformance.csv",PerfanmaceFile);
     for(int m = matrix::GD; m != matrix::C_Metrix; m += 1)
     {
         PerfanmaceFile << CIndicator::strMatrix.at(m) <<",";
         for(size_t a = 0; a < Setting.numAlgos(); a += 1)
-            PerfanmaceFile << algos[a].tittle() <<",";
+            PerfanmaceFile << norAlgos[a].tittle() <<",";
         PerfanmaceFile << endl;
 
         for(size_t s = 0; s < Setting.numSets(); s += 1)
         {
             PerfanmaceFile << setIinsSetNames[s].name() <<",";
             for(size_t a = 0; a < Setting.numAlgos(); a += 1)
-                PerfanmaceFile << algos[a].atSet(s).avgPerformance().get((matrix)m) << ",";
+                PerfanmaceFile << norAlgos[a].atSet(s).avgPerformance().get((matrix)m) << ",";
             PerfanmaceFile << endl;
         }
         PerfanmaceFile << endl;
@@ -255,7 +325,7 @@ int main()
     {
         for(size_t a = 0; a < Setting.numAlgos(); a += 1)
             for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
-                algos[a].atSet(s)[i].calPF(Problem);
+                norAlgos[a].atSet(s)[i].calRunPF(Problem);
 
         //c matrix
         for(size_t a = 0; a < Setting.numAlgos(); a += 1)
@@ -265,26 +335,26 @@ int main()
                     if(a == compare)
                         insAlgoCmatrix[s][i][a][compare] = -1;
                     else
-                        insAlgoCmatrix[s][i][a][compare] = indicator.C_Metrix(Problem ,algos[a].atSet(s)[i].front(),
-                                                           algos[compare].atSet(s)[i].front());
+                        insAlgoCmatrix[s][i][a][compare] = indicator.C_Metrix(Problem ,norAlgos[a].atSet(s)[i].front(),
+                                                           norAlgos[compare].atSet(s)[i].front());
                 }
         //c matrix----------------------------------------------------------------------------------------------
     }
 
     cout << "output C matrix..............................................." <<endl;
-    const string strCMatrixPath = strPerformacePath+"\\\\C_Matrix";
+    const string strCMatrixPath(strPerformacePath+"\\\\C_Matrix");
     mkdir(strCMatrixPath.c_str());
 
     ofstream CMatrixFile;
     for(size_t s = 0; s < Setting.numSets(); s += 1)
     {
-        const string strFilename = strCMatrixPath + "\\\\" + setIinsSetNames[s].name() + ".csv";
-        FileProcess.open(strFilename,CMatrixFile);
+        const string strFilename(strCMatrixPath + "\\\\" + setIinsSetNames[s].name() + ".csv");
+        ResultFileProcess.open(strFilename,CMatrixFile);
         for(size_t a = 0; a < Setting.numAlgos(); a += 1)
         {
-            CMatrixFile << algos[a].tittle() << ",";
+            CMatrixFile << norAlgos[a].tittle() << ",";
             for(size_t compare = 0; compare < Setting.numAlgos(); compare += 1)
-                CMatrixFile << algos[compare].tittle() << ",";
+                CMatrixFile << norAlgos[compare].tittle() << ",";
             CMatrixFile << ",";
         }
         CMatrixFile << endl;
@@ -306,88 +376,100 @@ int main()
 ///output result----------------------------------------------------------------------------------------------
 
 ///plot result
+    bool isWithBack = true;
+    if(Setting.runBegin() ==0 && Setting.runEnd() == 0 && Setting.insBack() == "NONE")
+        isWithBack = false;
     if(Problem.numObj() <= 3)
     {
+        const string strPlotPath(Setting.FolderTITTLE()+"\\\\plot");
+        mkdir(strPlotPath.c_str());
+
         cout << "plot begin.";
         Gnuplot gplot;
         gplot("set terminal png");
-        const string strPlotPath = Setting.FolderTITTLE()+"\\\\plot";
-        mkdir(strPlotPath.c_str());
-
         for(size_t a = 0; a < Setting.numAlgos(); a += 1)
         {
-            const string strAlgoSetPlotPath = strPlotPath + "\\\\" + algos[a].tittle();
-            mkdir(strAlgoSetPlotPath.c_str());
+            const string strnorAlgosetPlotPath(strPlotPath + "\\\\" + norAlgos[a].tittle());
+            mkdir(strnorAlgosetPlotPath.c_str());
             for(size_t s = 0; s < Setting.numSets(); s += 1)
             {
-                const string strSetPlotPath = strAlgoSetPlotPath + "\\\\" + setIinsSetNames[s].name();
+                const string strSetPlotPath(strnorAlgosetPlotPath + "\\\\" + setIinsSetNames[s].name());
                 mkdir(strSetPlotPath.c_str());
                 for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
                 {
-                    const string Png =  "set output \"" + strSetPlotPath + "\\\\" + setIinsSetNames[s][i] + ".png\"";
-                    gplot(Png);
+                    gplot("set output \"" + strSetPlotPath + "\\\\" + setIinsSetNames[s][i] + ".png\"");
+//                    gplot.set_title(setIinsSetNames[s][i]);
                     for(int obj = 0; obj < (int)Problem.numObj(); obj += 1)
                         gplot.set_axis((dimension)obj, Problem.objName(obj));
 
                     ostringstream  txt;
-                    const string SetInsNmae = setIinsSetNames[s].name() + "\\\\"+
-                                              setIinsSetNames[s][i];
-                    txt << " \"" << allInsPF.absPath() << "\\\\"
+                    const string SetInsNmae(setIinsSetNames[s].name() + "\\\\"+
+                                            setIinsSetNames[s][i]);
+                    txt << " \"" << setPF.absPath() << "\\\\"
                         << SetInsNmae << ".txt \" pt 2"
-                        << " title \""<< allInsPF.tittle() <<"\"";
+                        << " title \""<< setPF.tittle() <<"\"";
                     if(!isWithBack)
-                        txt << " ,\"" << algos[a].absPath() << "\\\\"
+                        txt << " ,\"" << norAlgos[a].absPath() << "\\\\"
                             << SetInsNmae << ".txt \" pt 4"
-                            << " title \""<< algos[a].tittle() <<"\"";
+                            << " title \""<< norAlgos[a].tittle() <<"\"";
                     else
                         for(size_t r = 0; r < numRun; r += 1)
                         {
-                            txt << ",\"" << algos[a].absPath() << "\\\\"
+                            txt << ",\"" << norAlgos[a].absPath() << "\\\\"
                                 << SetInsNmae << Setting.insBack() << r << ".txt\" pt " << 4+2*r
-                                << " title \""<< algos[a].tittle() << Setting.insBack() << r << "\"";
+                                << " title \""<< norAlgos[a].tittle() << Setting.insBack() << r << "\"";
                         }
                     gplot.plot(txt.str());
                 }
             }
         }
-///output algos PF
+///plot all ins PF
+        ofstream outNorFreeAlgosInsPF;
+        const string strALLAlgoSetPlotPath(strPlotPath + "\\\\algoInsPF");
+        mkdir(strALLAlgoSetPlotPath.c_str());
+        const string strALLAlgoSetPlotTxtPath(strALLAlgoSetPlotPath + "\\\\algoInsPF_txt");
+        mkdir(strALLAlgoSetPlotTxtPath.c_str());
+        for(size_t a = 0; a < Setting.numAlgos(); a += 1)
+        {
+            const string strAlgoPath(strALLAlgoSetPlotTxtPath + "\\\\" + norAlgos[a].tittle());
+            mkdir(strAlgoPath.c_str());
+            for(size_t s = 0; s < Setting.numSets(); s += 1)
+            {
+                const string strSetPath(strAlgoPath + "\\\\" + setIinsSetNames[s].name());
+                mkdir(strSetPath.c_str());
+                for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
+                {
+                    ResultFileProcess.open(strSetPath+"\\\\"+setIinsSetNames[s][i]+".txt",outNorFreeAlgosInsPF);
+                    ResultFileProcess.OutFront(norFreeAlgos[a].atSet(s)[i].front(),outNorFreeAlgosInsPF);
+                }
+            }
+        }
 
-////set/ins/algo.png(allrun
-////set/ins/AllAlgos.png(allrun
-//
-//        const string strPlotALLPFPath = strPlotPath + "\\\\ALL_algo_PF";
-//        mkdir(strPlotALLPFPath.c_str());
-//        const string strAlgoSetPlotPath = strPlotPath + "\\\\" + algos[a].tittle();
-//        mkdir(strAlgoSetPlotPath.c_str());
-//        for(size_t s = 0; s < Setting.numSets(); s += 1)
-//        {
-//            const string strSetPlotPath = strAlgoSetPlotPath + "\\\\" + setIinsSetNames[s].name();
-//            mkdir(strSetPlotPath.c_str());
-//            for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
-//            {
-//                const string Png =  "set output \"" + strSetPlotPath + "\\\\" + setIinsSetNames[s][i] + ".png\"";
-//                gplot(Png);
-//                for(int obj = 0; obj < (int)Problem.numObj(); obj += 1)
-//                    gplot.set_axis((dimension)obj, Problem.objName(obj));
-//
-//                ostringstream  txt;
-//                txt << " \"" << allInsPF.absPath() << "\\\\"
-//                    << setIinsSetNames[s].name() << "\\\\"
-//                    << setIinsSetNames[s][i] << ".txt \" pt 2"
-//                    << " title \""<< allInsPF.tittle() <<"\"";
-//                for(size_t a = 0; a < Setting.numAlgos(); a += 1)
-//                    for(size_t r = 0; r < numRun; r += 1)
-//                    {
-//                        txt << ",\"" << algos[a].absPath() << "\\\\"
-//                            << setIinsSetNames[s].name() << "\\\\"
-//                            << setIinsSetNames[s][i] << Setting.insBack() << r << ".txt\" pt " << 4+2*r
-//                            << " title \""<< algos[a].tittle() << Setting.insBack() << r << "\"";
-//                    }
-//
-//                gplot.plot(txt.str());
-//            }
-//        }
-///output cmatrix---------------------------------------------------------------------------------------------
+        for(size_t s = 0; s < Setting.numSets(); s += 1)
+        {
+            const string strSetPlotPath(strALLAlgoSetPlotPath + "\\\\" + setIinsSetNames[s].name());
+            mkdir(strSetPlotPath.c_str());
+            for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
+            {
+                gplot("set output \"" + strSetPlotPath + "\\\\" + setIinsSetNames[s][i] + ".png\"");
+                for(int obj = 0; obj < (int)Problem.numObj(); obj += 1)
+                    gplot.set_axis((dimension)obj, Problem.objName(obj));
+                ostringstream  txt;
+                const string SetInsNmae(setIinsSetNames[s].name() + "\\\\"+
+                                        setIinsSetNames[s][i]);
+                txt << " \"" << setPF.absPath() << "\\\\"
+                    << SetInsNmae << ".txt \" pt 2"
+                    << " title \""<< setPF.tittle() <<"\"";
+                for(size_t a = 0; a < Setting.numAlgos(); a += 1)
+                {
+                    txt << ",\"" << strALLAlgoSetPlotTxtPath << "\\\\" << norAlgos[a].tittle() << "\\\\"
+                        << SetInsNmae << ".txt\" pt " << 4+2*a
+                        << " title \""<< norAlgos[a].tittle() << "\"";
+                }
+                gplot.plot(txt.str());
+            }
+        }
+
         gplot("exit");
     }
 ///output result----------------------------------------------------------------------------------------------

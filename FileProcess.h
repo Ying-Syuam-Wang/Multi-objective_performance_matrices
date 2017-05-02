@@ -8,16 +8,21 @@
 class CFileProcess
 {
 public:
+    enum warningRate{repeatShowWithStop = 0, showWithStop, show, noWarning};
+
     typedef std::string File_Root;
 
-    void open(const File_Root & fileName,std::ifstream & file);
-    void open(const File_Root & fileName,std::ofstream & file);
+    bool open(const File_Root & fileName,std::ifstream & file, const warningRate wRate = repeatShowWithStop);
+    bool open(const File_Root & fileName,std::ofstream & file, const warningRate wRate = repeatShowWithStop);
     std::stringstream* read_CSV_line(const std::size_t length,std::string & line);
     void ReadPoints(const std::size_t numObj,
                     std::ifstream & file,
                     std::vector<std::vector<double>> & points);
     void OutPoints(const std::vector<std::vector<double>> & points,
                    std::ofstream & file);
+
+    bool isDirectExist(const std::string & dir);
+    bool isFileExist(const std::string & file);
 };
 
 

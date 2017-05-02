@@ -5,7 +5,6 @@
 
 enum matrix{GD = 0,IGD,IGD_Puls,HV,Size,C_Metrix};
 
-
 class CInstanceResult;
 class CProblem;
 class CFront;

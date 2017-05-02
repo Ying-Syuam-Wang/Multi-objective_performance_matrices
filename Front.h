@@ -22,7 +22,7 @@ class CFront
 public:
     struct SobjInfo
     {
-        CObjType::Tobj _min = 0;
+        CObjType::Tobj _min = -INT_MAX;
         CObjType::Tobj _MAX = 0;
         CObjType::Tobj _range = 0;
 
@@ -51,8 +51,8 @@ public:
 
     void sortByObj(const std::size_t obj = 1);
 
-    const SobjInfo & objExterms(const std::size_t o);
-    const std::vector<SobjInfo> & objsExterms()const{return _objInfos;}
+    const SobjInfo & objExtremes(const std::size_t o);
+    const std::vector<SobjInfo> & objsExtremes()const{return _objInfos;}
 
     void nomalizeBy(const std::vector<SobjInfo> & objInfo);
 
@@ -68,8 +68,7 @@ private:
         const CFront& front;
         const std::size_t obj;
     };
-
-    void updateObjExterms(const CSolution &sol);
+    void updateObjExtremes(const CSolution &sol);
 };
 
 

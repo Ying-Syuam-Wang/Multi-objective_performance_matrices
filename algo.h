@@ -6,52 +6,51 @@
 #include "FileProcess_result.h"
 #include <vector>
 #include <string>
-using std::string;
-using std::size_t;
-using std::vector;
 
 class CSetting;
 class CSingleInstanceResult;
+class CProblem;
 
 class CAlgo
 {
 public:
     CAlgo(){}
-    explicit CAlgo(size_t s) : _insSets(s){}
-    explicit CAlgo(const string & tittle) : _tittle(tittle){}
-    explicit CAlgo(const string & tittle,const string & absPath) :
+    explicit CAlgo(std::size_t s) : _insSets(s){}
+    explicit CAlgo(const std::string & tittle) : _tittle(tittle){}
+    explicit CAlgo(const std::string & tittle,const std::string & absPath) :
                    _tittle(tittle), _absoluteFolderPath(absPath){}
-    void SetUp(const string & tittle,
-               const string & absPath,
-               const vector<CInstanceSetNames> & insSetNames,
-               const size_t numObj,
-               const size_t numSet,
-               const string insBack,
-               const size_t runBegin,
-               const size_t runEnd);
+    void SetUp(const std::string & tittle,
+               const std::string & absPath,
+               const std::vector<CInstanceSetNames> & insSetNames,
+               const CProblem & Problem,
+               const std::size_t numSet,
+               const std::string insBack,
+               const std::size_t runBegin,
+               const std::size_t runEnd);
 
-    void SetUpSolutions(const string &fileName, const size_t numObj, CSingleInstanceResult &insResult);
-    void SetTittle(const string &tittle){_tittle = tittle;}
-    void SetAbsPath(const string &absPath){_absoluteFolderPath = absPath;}
-    void resizeSet(const size_t i){_insSets.resize(i);}
+    void SetTittle(const std::string &tittle){_tittle = tittle;}
+    void SetAbsPath(const std::string &absPath){_absoluteFolderPath = absPath;}
+    void resizeSet(const std::size_t i){_insSets.resize(i);}
 
 
-    const CInstanceSet & atSet(size_t i)const{return _insSets[i];}
-    CInstanceSet & atSet(size_t i)
+    const CInstanceSet & atSet(std::size_t i)const{return _insSets[i];}
+    CInstanceSet & atSet(std::size_t i)
         { return const_cast<CInstanceSet&>(static_cast<const CAlgo&>(*this).atSet(i));}
 
-    const string &tittle()const{return _tittle;}
-    const string &absPath()const{return _absoluteFolderPath;}
+    const std::string &tittle()const{return _tittle;}
+    const std::string &absPath()const{return _absoluteFolderPath;}
 
     void calAvgPerforamce();
-    void Performace(const size_t i);
+    const CPerformace & avgPerformance()const{return _avgSetPerformance;}
+    CPerformace & avgPerformance()
+        { return const_cast<CPerformace&>(static_cast<const CAlgo&>(*this).avgPerformance());}
 
 private:
-    string _tittle;
-    string _absoluteFolderPath;
+    std::string _tittle;
+    std::string _absoluteFolderPath;
 
     CPerformace _avgSetPerformance;
-    vector<CInstanceSet> _insSets;
+    std::vector<CInstanceSet> _insSets;
 };
 
 

@@ -9,11 +9,16 @@ double CIndicator::IGD_Puls(const CFront & Front, const CFront & PF)
 {
     return 1;
 }
+
+#include <stdlib.h>
+#include <iostream>
+using namespace std;
 double CIndicator::IGD(const CFront & Front, const CFront & PF)
 {
     double sum = 0.0;
     for(CSolution sPF : PF.Sols())
     {
+//        cout<<sPF<<endl;
         double distance = MathAux::EuclideanDistance(PF[0].objs(),Front[0].objs());
         for(CSolution sF : Front.Sols())
         {
@@ -23,17 +28,18 @@ double CIndicator::IGD(const CFront & Front, const CFront & PF)
         }
         sum += distance;
 
+//        cout<<"sum = "<<sum<<endl;
+
     }
+//    system("PAUSE");
     return sum /(double) PF.numSols();
 }
-
-
 double CIndicator::HV(const CFront & Front,std::pair<double,double> referencePoint)
 {
     CFront outFreeFront(Front);
     std::size_t i = 0;
     while(i < outFreeFront.numSols())
-        if(outFreeFront[i][0] > referencePoint.first || outFreeFront[i][1] > referencePoint.second)
+        if(outFreeFront[i][0] > 1.0 || outFreeFront[i][1] > 1.0)
             outFreeFront.erase(outFreeFront.begin()+i);
         else
             i += 1;

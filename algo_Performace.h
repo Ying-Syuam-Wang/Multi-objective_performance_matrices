@@ -36,6 +36,10 @@ public:
     CObjType::Tobj HV(){return _HV;}
     CObjType::Tobj Size(){return _Size;}
 
+    bool isBetter(const matrix i, const CObjType::Tobj compare);
+    bool isBetter(const matrix i, const CPerformace & compare);
+
+    void norPerforamceBy(const CPerformace & extermPerformance);
 private:
     CObjType::Tobj _GD;
     CObjType::Tobj _IGD;

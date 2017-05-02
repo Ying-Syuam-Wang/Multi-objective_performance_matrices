@@ -2,10 +2,15 @@
 #include "FileProcess_result.h"
 #include "Convert.h"
 #include "Setting.h"
+#include "Setting_Problem.h"
+using std::string;
+using std::vector;
+using std::size_t;
+
 void CAlgo::SetUp(const string &tittle,
                   const string &absPath,
                   const vector<CInstanceSetNames> & insSetNames,
-                  const size_t numObj,
+                  const CProblem & Problem,
                   const size_t numSet,
                   const string insBack,
                   const size_t runBegin,
@@ -31,25 +36,16 @@ void CAlgo::SetUp(const string &tittle,
             for(size_t r = 0; r < numRun; r += 1)
             {
                 if(isWithBack)
-                    this->SetUpSolutions(absPath+"\\\\"+insSetNames[s].name()+"\\\\"+insSetNames[s][i]+insBack+Convert.toString(runBegin+r)+".txt",
-                                         numObj,_insSets[s][i][r]);
+                    _insSets[s][i][r].SetUpSolutions(absPath+"\\\\"+insSetNames[s].name()+"\\\\"
+                                                     +insSetNames[s][i]+insBack+Convert.toString(runBegin+r)+".txt", Problem.numObj());
                 else
-                    this->SetUpSolutions(absPath+"\\\\"+insSetNames[s].name()+"\\\\"+insSetNames[s][i]+".txt",
-                                         numObj,_insSets[s][i][0]);
+                    _insSets[s][i][r].SetUpSolutions(absPath+"\\\\"+insSetNames[s].name()+"\\\\"+insSetNames[s][i]+".txt", Problem.numObj());
             }
+            _insSets[s][i].calRunPF(Problem);
         }
     }
 }
-void CAlgo::SetUpSolutions(const string &fileName,
-                           const size_t numObj,
-                           CSingleInstanceResult &insResult)
-{
-    std::ifstream ins;
-    ResultFileProcess.open(fileName,ins);
-    ResultFileProcess.ReadFront(numObj,ins,insResult.front());
-    insResult.front().sortByObj();
-    ins.close();
-}
+
 
 void CAlgo::calAvgPerforamce()
 {

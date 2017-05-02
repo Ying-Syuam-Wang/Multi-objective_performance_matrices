@@ -7,7 +7,6 @@
 #include <fstream>
 #include <vector>
 #include <string>
-using std::string;
 
 class CSingleInstanceResult
 {
@@ -35,6 +34,8 @@ public:
     CPerformace & Performace()
     { return const_cast<CPerformace&>(static_cast<const CSingleInstanceResult&>(*this).Performace());}
     void norPerforamceBy(const CPerformace & extermPerformance);
+
+    void SetUpSolutions(const std::string &fileName, const std::size_t numObj);
 private:
     CFront _results;
     CPerformace _performance;
@@ -43,20 +44,26 @@ private:
 class CProblem;
 class CInstanceResult
 {
+    friend std::ostream & operator << (std::ostream & os,const CInstanceResult &insResult)
+    {
+        os << insResult._PF << std::endl;
+        os << insResult._performance << std::endl;
+        return os;
+    }
 public:
 
     CInstanceResult(){}
-    explicit CInstanceResult(size_t r):_Run(r){}
+    explicit CInstanceResult(std::size_t r):_Run(r){}
 
-    void resizeRuns(size_t r){_Run.resize(r);}
-    size_t numRun()const{return _Run.size();}
+    void resizeRuns(std::size_t r){_Run.resize(r);}
+    std::size_t numRun()const{return _Run.size();}
 
-    const CSingleInstanceResult & Run(size_t i)const{return _Run[i];}
-    CSingleInstanceResult & Run(size_t i)
+    const CSingleInstanceResult & Run(std::size_t i)const{return _Run[i];}
+    CSingleInstanceResult & Run(std::size_t i)
         { return const_cast<CSingleInstanceResult&>(static_cast<const CInstanceResult&>(*this).Run(i));}
 
-    const CSingleInstanceResult & operator[](size_t i)const{return _Run[i];}
-    CSingleInstanceResult& operator[](size_t i)
+    const CSingleInstanceResult & operator[](std::size_t i)const{return _Run[i];}
+    CSingleInstanceResult& operator[](std::size_t i)
         { return const_cast<CSingleInstanceResult&>(static_cast<const CInstanceResult&>(*this)[i]);}
 
     void calAvgPerforamce();
@@ -66,17 +73,18 @@ public:
     CPerformace & avgPerformance()
         { return const_cast<CPerformace&>(static_cast<const CInstanceResult&>(*this).avgPerformance());}
 
-    void calPF(const CProblem & Problem);
+    void calRunPF(const CProblem & Problem);
     const CPerformace & Performace()const{return _performance;}
     CPerformace & Performace()
     { return const_cast<CPerformace&>(static_cast<const CInstanceResult&>(*this).Performace());}
 
     const CFront & front()const{return _PF;}
     CFront & front(){ return const_cast<CFront&>(static_cast<const CInstanceResult&>(*this).front());}
+
+    void SetUpSolutions(const std::string &fileName, const std::size_t numObj);
 private:
     std::vector<CSingleInstanceResult> _Run;
     CPerformace _avgRunPerformance;
-
 
     CFront _PF;
     CPerformace _performance;

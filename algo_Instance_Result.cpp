@@ -1,21 +1,10 @@
 #include "algo_Instance_Result.h"
 #include "Dominace_Relationship.h"
 #include "Setting_Problem.h"
-
-#include <iostream>
-#include <stdlib.h>
-using namespace std;
+#include "FileProcess_result.h"
 void CSingleInstanceResult::norPerforamceBy(const CPerformace & extermPerformance)
 {
-    for(int m = matrix::GD; m != matrix::Size; m += 1)
-    {
-        const double originalPer = _performance.get((matrix)m);
-        const double minmimPer = extermPerformance.get((matrix)m);
-        if(m == matrix::GD || m == matrix::IGD || m == matrix::IGD_Puls)
-            _performance.set((matrix)m,(1+originalPer)/(1+minmimPer));
-        else
-            _performance.set((matrix)m,originalPer/minmimPer);
-    }
+   _performance.norPerforamceBy(extermPerformance);
 }
 
 void CSingleInstanceResult::SetSolutions(const std::vector<std::vector<double>> &F)
@@ -28,10 +17,21 @@ void CSingleInstanceResult::SetSolutions(const std::vector<std::vector<double>> 
             _results[i][o] = F[i][o];
     }
 }
+
+void CSingleInstanceResult::SetUpSolutions(const string &fileName, const size_t numObj)
+{
+    std::ifstream ins;
+    ResultFileProcess.open(fileName,ins);
+    ResultFileProcess.ReadFront(numObj,ins,_results);
+    _results.sortByObj();
+    ins.close();
+}
+
 void CInstanceResult::norAllRunPerforamceBy(const CPerformace & extermPerformance)
 {
     for(size_t r = 0; r < _Run.size(); r += 1)
         _Run[r].norPerforamceBy(extermPerformance);
+    _performance.norPerforamceBy(extermPerformance);
 }
 void CInstanceResult::calAvgPerforamce()
 {
@@ -45,9 +45,18 @@ void CInstanceResult::calAvgPerforamce()
         _avgRunPerformance.set((matrix)m,average);
     }
 }
-void CInstanceResult::calPF(const CProblem & Problem)
+void CInstanceResult::calRunPF(const CProblem & Problem)
 {
     CDominace dominated;
     for(size_t r = 0; r < _Run.size(); r += 1)
         dominated.UpdatePF(Problem , _Run[r].front(),_PF);
+}
+
+void CInstanceResult::SetUpSolutions(const string &fileName, const size_t numObj)
+{
+    std::ifstream ins;
+    ResultFileProcess.open(fileName,ins);
+    ResultFileProcess.ReadFront(numObj,ins,_PF);
+    _PF.sortByObj();
+    ins.close();
 }
