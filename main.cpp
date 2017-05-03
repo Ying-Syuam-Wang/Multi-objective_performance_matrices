@@ -41,6 +41,8 @@ int main()
 //        }
 //    }
 
+    cout << "Result output to " << Setting.FolderTITTLE() << "................................................" <<endl;
+
     vector<CAlgo> norAlgos(Setting.numAlgos());
     vector<CInstanceSetNames> setIinsSetNames(Setting.numSets());
     for(size_t s = 0; s < Setting.numSets(); s += 1)
@@ -458,12 +460,12 @@ int main()
                 const string SetInsNmae(setIinsSetNames[s].name() + "\\\\"+
                                         setIinsSetNames[s][i]);
                 txt << " \"" << setPF.absPath() << "\\\\"
-                    << SetInsNmae << ".txt \" pt 2"
+                    << SetInsNmae << ".txt \" w lp  lw 2  pt 2"
                     << " title \""<< setPF.tittle() <<"\"";
                 for(size_t a = 0; a < Setting.numAlgos(); a += 1)
                 {
                     txt << ",\"" << strALLAlgoSetPlotTxtPath << "\\\\" << norAlgos[a].tittle() << "\\\\"
-                        << SetInsNmae << ".txt\" pt " << 4+2*a
+                        << SetInsNmae << ".txt\" w lp  lw 2  pt " << 4+2*a
                         << " title \""<< norAlgos[a].tittle() << "\"";
                 }
                 gplot.plot(txt.str());
