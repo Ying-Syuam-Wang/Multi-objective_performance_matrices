@@ -58,7 +58,7 @@ CSetting::CSetting(const CFileProcess::File_Root &fileName)
             ss[1] >> this->_FolderTITTLE;
             break;
         }
-        ss->clear();
+        delete [] ss;
     }
 
     file >> strTmp;
@@ -78,6 +78,6 @@ CSetting::CSetting(const CFileProcess::File_Root &fileName)
 
             pos = _algoTittleAndPath[i].second.find('\\',pos+4);
         }
-        ss->clear();
+        delete [] ss;
     }
 }
