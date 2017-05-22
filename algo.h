@@ -45,6 +45,7 @@ public:
     CPerformace & avgPerformance()
         { return const_cast<CPerformace&>(static_cast<const CAlgo&>(*this).avgPerformance());}
 
+    size_t numInsSet(){return _insSets.size();}
 private:
     std::string _tittle;
     std::string _absoluteFolderPath;

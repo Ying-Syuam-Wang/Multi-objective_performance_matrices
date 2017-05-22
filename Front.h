@@ -2,6 +2,7 @@
 #define FRONT_H_INCLUDED
 
 #include <iostream>
+#include <climits>
 #include "Solution.h"
 #include "Objective_Type.h"
 

@@ -14,6 +14,8 @@
 #include <sstream>
 using namespace std;
 
+#include "Print.h"
+
 //enum matrix{GD = 0,IGD,IGD_Puls,HV,Size,C_Metrix};
 const int matrixFront = matrix::GD;
 const int matrixEnd = matrix::HV;
@@ -23,23 +25,23 @@ int main()
 {
     CSetting Setting("Setting\\IndicatorSetting.csv");
     string answer("n");
-//    while(mkdir(Setting.FolderTITTLE().c_str()) != 0 && answer != "y")
-//    {
-//        cout << "the folder "<< Setting.FolderTITTLE() <<" is already exist, want to reset? (y/n)...>";
-//        cin >> answer;
-//        if(answer != "y")
-//        {
-//            cout << "Or you want to change tittle?(y/n)...>";
-//            cin >> answer;
-//            if(answer == "y")
-//            {
-//                cout << "folder name...>";
-//                string NewFolderName;
-//                cin >> NewFolderName;
-//                Setting.setFolderTITTLE(NewFolderName);
-//            }
-//        }
-//    }
+    while(mkdir(Setting.FolderTITTLE().c_str()) != 0 && answer != "y")
+    {
+        cout << "the folder "<< Setting.FolderTITTLE() <<" is already exist, want to reset? (y/n)...>";
+        cin >> answer;
+        if(answer != "y")
+        {
+            cout << "Or you want to change tittle?(y/n)...>";
+            cin >> answer;
+            if(answer == "y")
+            {
+                cout << "folder name...>";
+                string NewFolderName;
+                cin >> NewFolderName;
+                Setting.setFolderTITTLE(NewFolderName);
+            }
+        }
+    }
 
     cout << "Result output to " << Setting.FolderTITTLE() << "................................................" <<endl;
 
@@ -205,8 +207,8 @@ int main()
                 }
                 else
                 {
-                    extremeResult.atSet(s)[i][m].Performace() = norAlgos[1].atSet(s)[i][0].Performace();
-                    extremeResult.atSet(s)[i][m].front() = norFreeAlgos[1].atSet(s)[i][0].front();
+                    extremeResult.atSet(s)[i][m].Performace() = norAlgos[0].atSet(s)[i][0].Performace();
+                    extremeResult.atSet(s)[i][m].front() = norFreeAlgos[0].atSet(s)[i][0].front();
                 }
                 for(size_t a = 0; a < Setting.numAlgos(); a += 1)
                     for(size_t r = 0; r < numRun; r += 1)

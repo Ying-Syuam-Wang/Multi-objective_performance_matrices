@@ -22,6 +22,8 @@ public:
     const CPerformace & avgPerformance()const{return _avgInsPerformance;}
     CPerformace & avgPerformance()
         { return const_cast<CPerformace&>(static_cast<const CInstanceSet&>(*this).avgPerformance());}
+
+    size_t numIns(){return _insResult.size();}
 private:
     std::vector<CInstanceResult> _insResult;
     CPerformace _avgInsPerformance;
