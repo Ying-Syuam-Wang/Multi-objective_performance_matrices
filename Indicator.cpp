@@ -34,21 +34,40 @@ double CIndicator::IGD(const CFront & Front, const CFront & PF)
 //    system("PAUSE");
     return sum /(double) PF.numSols();
 }
+#include <iostream>
+#include <stdlib.h>
+using namespace std;
 double CIndicator::HV(const CFront & Front,std::pair<double,double> referencePoint)
 {
     CFront outFreeFront(Front);
     std::size_t i = 0;
     while(i < outFreeFront.numSols())
-        if(outFreeFront[i][0] > 1.0 || outFreeFront[i][1] > 1.0)
-            outFreeFront.erase(outFreeFront.begin()+i);
-        else
-            i += 1;
+//        if(outFreeFront[i][0] > 1.0 || outFreeFront[i][1] > 1.0)
+//            outFreeFront.erase(outFreeFront.begin()+i);
+//        else
+//            i += 1;
+       {
+
+       if(outFreeFront[i][0] > 1.0)
+            outFreeFront[i][0] = 1.2;
+        else if(outFreeFront[i][1] > 1.0)
+            outFreeFront[i][0] = 1.2;
+            i ++;
+       }
     double tempHV = 0.;
     for(size_t h = 0; h < outFreeFront.numSols(); h += 1)
     {
         tempHV += (referencePoint.first - outFreeFront[h][0]) * (referencePoint.second - outFreeFront[h][1]);
         referencePoint.second = outFreeFront[h][1];
+//    cout<<tempHV<<"  += ("<<referencePoint.first<<" - "<<outFreeFront[h][0]<<") * ("
+//        <<referencePoint.second<<" - "<<outFreeFront[h][1]<<")"<<endl;
+//    cout<<"outFreeFront:"<<outFreeFront;
+//    cout<<"tempHV:"<<tempHV<<endl;
     }
+//    cout<<"front:"<<Front;
+//    cout<<"outFreeFront:"<<outFreeFront;
+//    cout<<"tempHV:"<<tempHV;
+//    system("PAUSE");
     return tempHV;
 }
 

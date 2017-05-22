@@ -23,23 +23,23 @@ int main()
 {
     CSetting Setting("Setting\\IndicatorSetting.csv");
     string answer("n");
-//    while(mkdir(Setting.FolderTITTLE().c_str()) != 0 && answer != "y")
-//    {
-//        cout << "the folder "<< Setting.FolderTITTLE() <<" is already exist, want to reset? (y/n)...>";
-//        cin >> answer;
-//        if(answer != "y")
-//        {
-//            cout << "Or you want to change tittle?(y/n)...>";
-//            cin >> answer;
-//            if(answer == "y")
-//            {
-//                cout << "folder name...>";
-//                string NewFolderName;
-//                cin >> NewFolderName;
-//                Setting.setFolderTITTLE(NewFolderName);
-//            }
-//        }
-//    }
+    while(mkdir(Setting.FolderTITTLE().c_str()) != 0 && answer != "y")
+    {
+        cout << "the folder "<< Setting.FolderTITTLE() <<" is already exist, want to reset? (y/n)...>";
+        cin >> answer;
+        if(answer != "y")
+        {
+            cout << "Or you want to change tittle?(y/n)...>";
+            cin >> answer;
+            if(answer == "y")
+            {
+                cout << "folder name...>";
+                string NewFolderName;
+                cin >> NewFolderName;
+                Setting.setFolderTITTLE(NewFolderName);
+            }
+        }
+    }
 
     cout << "Result output to " << Setting.FolderTITTLE() << "................................................" <<endl;
 
@@ -69,7 +69,11 @@ int main()
         for(size_t s = 0; s < Setting.numSets(); s += 1)
             for(size_t i = 0; i < setIinsSetNames[s].size(); i += 1)
                 for(size_t r = 0; r < numRun; r += 1)
+                {
+                    cout << s <<i <<r<<endl;
+
                     dominated.UpdatePF(Problem,norAlgos[a].atSet(s).Ins(i).Run(r).front(),setPF.atSet(s)[i].front());
+                }
     }
 
 ///find PF----------------------------------------------------------------------------------------
@@ -205,9 +209,11 @@ int main()
                 }
                 else
                 {
-                    extremeResult.atSet(s)[i][m].Performace() = norAlgos[1].atSet(s)[i][0].Performace();
-                    extremeResult.atSet(s)[i][m].front() = norFreeAlgos[1].atSet(s)[i][0].front();
+                    extremeResult.atSet(s)[i][m].Performace() = norAlgos[0].atSet(s)[i][0].Performace();
+                    extremeResult.atSet(s)[i][m].front() = norFreeAlgos[0].atSet(s)[i][0].front();
                 }
+///find extreme from new fronts
+/*
                 for(size_t a = 0; a < Setting.numAlgos(); a += 1)
                     for(size_t r = 0; r < numRun; r += 1)
                         if(norAlgos[a].atSet(s)[i][r].Performace().isBetter((matrix)m, extremeResult.atSet(s)[i][m].Performace()))
@@ -215,6 +221,7 @@ int main()
                             extremeResult.atSet(s)[i][m].Performace() = norAlgos[a].atSet(s)[i][r].Performace();
                             extremeResult.atSet(s)[i][m].front() = norFreeAlgos[a].atSet(s)[i][r].front();
                         }
+*/
             }
         }
     }
@@ -415,7 +422,7 @@ int main()
                             << SetInsNmae << ".txt \" pt 4"
                             << " title \""<< norAlgos[a].tittle() <<"\"";
                     else
-                        for(size_t r = 0; r < numRun; r += 1)
+                        for(size_t r = Setting.runBegin(); r < Setting.runEnd(); r += 1)
                         {
                             txt << ",\"" << norAlgos[a].absPath() << "\\\\"
                                 << SetInsNmae << Setting.insBack() << r << ".txt\" pt " << 4+2*r
@@ -460,12 +467,13 @@ int main()
                 const string SetInsNmae(setIinsSetNames[s].name() + "\\\\"+
                                         setIinsSetNames[s][i]);
                 txt << " \"" << setPF.absPath() << "\\\\"
-                    << SetInsNmae << ".txt \" w lp  lw 2  pt 2"
+                    << SetInsNmae << ".txt \"  pt 2"
                     << " title \""<< setPF.tittle() <<"\"";
                 for(size_t a = 0; a < Setting.numAlgos(); a += 1)
                 {
                     txt << ",\"" << strALLAlgoSetPlotTxtPath << "\\\\" << norAlgos[a].tittle() << "\\\\"
-                        << SetInsNmae << ".txt\" w lp  lw 2  pt " << 4+2*a
+                        << SetInsNmae << ".txt\"  pt " << 4+2*a
+//                        << SetInsNmae << ".txt\" w lp  lw 2  pt " << 4+2*a
                         << " title \""<< norAlgos[a].tittle() << "\"";
                 }
                 gplot.plot(txt.str());
